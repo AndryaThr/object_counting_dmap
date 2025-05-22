@@ -4,7 +4,7 @@ from typing import Optional, List
 import torch
 import numpy as np
 import matplotlib
-
+from tqdm import tqdm
 
 class Looper():
     """Looper handles epoch loops, logging, and plotting."""
@@ -55,8 +55,10 @@ class Looper():
 
         # set a proper mode: train or eval
         self.network.train(not self.validation)
+        
+        print(f"{'Train' if not self.validation else 'Valid'}:\n")
 
-        for image, label in self.loader:
+        for image, label in tqdm(self.loader):
             # move images and labels to given device
             image = image.to(self.device)
             label = label.to(self.device)

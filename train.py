@@ -99,7 +99,7 @@ def train(dataset_name: str,
                           validation=True)
 
     # current best results (lowest mean absolute error on validation set)
-    current_best = np.infty
+    current_best = np.inf
 
     for epoch in range(epochs):
         print(f"Epoch {epoch + 1}\n")
@@ -115,10 +115,14 @@ def train(dataset_name: str,
         # update checkpoint if new best is reached
         if result < current_best:
             current_best = result
-            torch.save(network.state_dict(),
-                       f'{dataset_name}_{network_architecture}.pth')
-
-            print(f"\nNew best result: {result}")
+            
+        torch.save(network.state_dict(), f'/kaggle/working/model_fcrn_state_dict_{epoch:05d}.pt')
+        torch.save(network, f'/kaggle/working/model_fcrn_{epoch:05d}.pt')
+        torch.save({
+            'epoch': epoch + 1, 
+            'state_dict': network.state_dict(),
+            'optimizer': optimizer.state_dict(), 
+        }, f'/kaggle/working/model_{(epoch+1):05d}.pt')
 
         print("\n", "-"*80, "\n", sep='')
 
