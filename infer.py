@@ -26,6 +26,7 @@ from matplotlib.figure import figaspect
 from PIL import Image
 
 from model import UNet, FCRN_A
+from vgg import VGG16_FCN
 
 
 @click.command()
@@ -72,7 +73,8 @@ def infer(image_path: str,
     # initialize a model based on chosen network_architecture
     network = {
         'UNet': UNet,
-        'FCRN_A': FCRN_A
+        'FCRN_A': FCRN_A,
+        'VGG16_FCN': VGG16_FCN
     }[network_architecture](input_filters=input_channels,
                             filters=unet_filters,
                             N=convolutions).to(device)

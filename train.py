@@ -10,7 +10,7 @@ from matplotlib import pyplot
 from data_loader import H5Dataset
 from looper import Looper
 from model import UNet, FCRN_A
-
+from vgg import VGG16_FCN
 
 @click.command()
 @click.option('-d', '--dataset_name',
@@ -18,7 +18,7 @@ from model import UNet, FCRN_A
               required=True,
               help='Dataset to train model on (expect proper HDF5 files).')
 @click.option('-n', '--network_architecture',
-              type=click.Choice(['UNet', 'FCRN_A']),
+              type=click.Choice(['UNet', 'FCRN_A', "VGG16_FCN"]),
               required=True,
               help='Model to train.')
 @click.option('-lr', '--learning_rate', default=1e-2,
@@ -35,6 +35,7 @@ from model import UNet, FCRN_A
 @click.option('--convolutions', default=2,
               help='Number of layers in a convolutional block.')
 @click.option('--plot', is_flag=True, help="Generate a live plot.")
+@click.option('-o', '--output_path', default=None, help="Output folder for model checkpoints.")
 def train(dataset_name: str,
           network_architecture: str,
           learning_rate: float,
@@ -44,9 +45,12 @@ def train(dataset_name: str,
           vertical_flip: float,
           unet_filters: int,
           convolutions: int,
-          plot: bool):
+          plot: bool,
+          output_path: Optional[str]):
     """Train chosen model on selected dataset."""
     # use GPU if avilable
+    opth = os.path.abspath('.') if output_path is None else os.path.abspath(output_path)
+    
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
     dataset = {}     # training and validation HDF5-based datasets
@@ -68,11 +72,11 @@ def train(dataset_name: str,
     # initialize a model based on chosen network_architecture
     network = {
         'UNet': UNet,
-        'FCRN_A': FCRN_A
+        'FCRN_A': FCRN_A,
+        'VGG16_FCN': VGG16_FCN
     }[network_architecture](input_filters=input_channels,
                             filters=unet_filters,
                             N=convolutions).to(device)
-    network = torch.nn.DataParallel(network)
 
     # initialize loss, optimized and learning rate scheduler
     loss = torch.nn.MSELoss()
@@ -100,7 +104,7 @@ def train(dataset_name: str,
 
     # current best results (lowest mean absolute error on validation set)
     current_best = np.inf
-
+    
     for epoch in range(epochs):
         print(f"Epoch {epoch + 1}\n")
 
@@ -116,13 +120,16 @@ def train(dataset_name: str,
         if result < current_best:
             current_best = result
             
-        torch.save(network.state_dict(), f'/kaggle/working/model_fcrn_state_dict_{epoch:05d}.pt')
-        torch.save(network, f'/kaggle/working/model_fcrn_{epoch:05d}.pt')
+            print(f"[!] New best result: {result}")
+        
+    
+        save_path = os.path.join(opth, f"model_{network_architecture}_{(epoch + 1):03d}.pth")    
         torch.save({
             'epoch': epoch + 1, 
-            'state_dict': network.state_dict(),
+            'model_state_dict': network.state_dict(),
             'optimizer': optimizer.state_dict(), 
-        }, f'/kaggle/working/model_{(epoch+1):05d}.pt')
+            'scheduler': lr_scheduler.state_dict(),
+        }, save_path)
 
         print("\n", "-"*80, "\n", sep='')
 
@@ -130,3 +137,4 @@ def train(dataset_name: str,
 
 if __name__ == '__main__':
     train()
+

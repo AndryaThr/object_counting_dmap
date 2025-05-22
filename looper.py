@@ -113,6 +113,7 @@ class Looper():
         self.abs_err = [abs(error) for error in self.err]
         self.mean_err = sum(self.err) / self.size
         self.mean_abs_err = sum(self.abs_err) / self.size
+        self.mean_squared_err = sum([error ** 2 for error in self.err]) / self.size
         self.std = np.array(self.err).std()
 
     def plot(self):
@@ -143,4 +144,5 @@ class Looper():
               f"\tAverage loss: {self.running_loss[-1]:3.4f}\n"
               f"\tMean error: {self.mean_err:3.3f}\n"
               f"\tMean absolute error: {self.mean_abs_err:3.3f}\n"
+              f"\tMean squared error: {self.mean_squared_err:3.3f}\n"
               f"\tError deviation: {self.std:3.3f}")

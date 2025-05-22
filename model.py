@@ -185,6 +185,16 @@ class UNet(nn.Module):
         block7 = self.block7(block6)
         return self.density_pred(block7)
 
+def load_from_checkpoint(model, checkpoint_path, optimizer=None, scheduler=None):
+    """Load model from checkpoint."""
+    checkpoint = torch.load(checkpoint_path)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    if optimizer is not None:
+        optimizer.load_state_dict(checkpoint['optimizer'])
+    if scheduler is not None:
+        scheduler.load_state_dict(checkpoint['scheduler'])
+    epoch = checkpoint['epoch']
+    return model, optimizer, scheduler, epoch
 
 # --- PYTESTS --- #
 
