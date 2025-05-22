@@ -122,14 +122,13 @@ def train(dataset_name: str,
             
             print(f"[!] New best result: {result}")
         
-    
-        save_path = os.path.join(opth, f"model_{network_architecture}_{(epoch + 1):03d}.pth")    
-        torch.save({
-            'epoch': epoch + 1, 
-            'model_state_dict': network.state_dict(),
-            'optimizer': optimizer.state_dict(), 
-            'scheduler': lr_scheduler.state_dict(),
-        }, save_path)
+            save_path = os.path.join(opth, f"model_{network_architecture}_{(epoch + 1):03d}.pth")    
+            torch.save({
+                'epoch': epoch + 1, 
+                'model_state_dict': network.state_dict(),
+                'optimizer': optimizer.state_dict(), 
+                'scheduler': lr_scheduler.state_dict(),
+            }, save_path)
 
         print("\n", "-"*80, "\n", sep='')
 
